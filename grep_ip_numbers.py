@@ -5,7 +5,6 @@ grep all ip numbers from a file and try to resolve the addresses
 20201027 1.1  primus  better error handling
 20201023 1.0  primus  included argparse
 20191015 0.1  primus  develop
-
 '''
 __version__ = '1.1'
 
@@ -25,7 +24,10 @@ def parser_init():
   return parser.parse_args() 
 
 def ipsort(s):
-  ss=s.split('/')
+  '''
+  use the hex value to sort the ip numbers
+  '''
+  ss=s.split('/')  # if there is a cidr or subnet strip it
   try:
     return '0x{:02x}{:02x}{:02x}{:02x}'.format(*map(int, ss[0].split('.')))
   except: 
@@ -45,7 +47,6 @@ class find_ip_numbers_in_file(object):
   '''
   grep all ip numbers from a file and try to resolve the addresses
   input args from argsparse, args.file and args.debug must be defined
-  there is no check if it are valid ip numbers
   '''
   def __init__(self, args):
     self.args = args
@@ -75,4 +76,3 @@ class find_ip_numbers_in_file(object):
 if __name__ == '__main__':
   args = parser_init()
   print(find_ip_numbers_in_file(args))
-
