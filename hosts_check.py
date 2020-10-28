@@ -161,9 +161,11 @@ class get_host_info(object):
 
   def check_ping(self, host):
     '''
-    It's a pity, this routine is very system dependent )-;
-    If there are no ping responses or wrong response time's you 
-    probably have to fix the search regexp here for your system and language
+    It's a pity, this routine is very system dependent.
+    If there are no ping responses or wrong response time's you probably
+    have to fix the search regexp here for your system and language.
+    There are some system independent ping implementations in python but
+    those have usually permission issues )-;
     '''
     param = '-c'
     host.ping = 'timeout'
