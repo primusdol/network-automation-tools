@@ -2,14 +2,16 @@
 '''
 Ping and/or portscan a list of hosts addresses
 Extract the host adresses or subnets from command line arguments or read them from file
-Use treads to speedup the process
+Use threads to speedup the process.
+Note the --scanmax should be adjusted to the maximum allowed simultaneous threads on your system.
 
+20201028  2.8  primus  fixed some ipv6 issues
 20201027  2.7  primus  added a command line parser
 20200826  2.6  primus  make use ipaddress functionality new in python 3.7
 20200129  2.5  primus  unix and windows comptible
 20160309  1.0  primus  development
 ''' 
-__version__='2.7'
+__version__='2.8'
 
 import re, os, sys 
 import socket
@@ -39,6 +41,7 @@ def parser_init():
   parser.add_argument(     '--ping',     action='store_true',                     help='ping the addresses')
   parser.add_argument(     '--scanmax',  type=int, default=260,                   help='scan limit')
   parser.add_argument('-r','--resolve',  action='store_true',                     help='resolve the addresses')
+  parser.add_argument('-a','--active',   action='store_true',                     help='report only active addresses')
   parser.add_argument('-v','--version',  action='version',                        version='%(prog)s  {}'.format(__version__))
   parser.add_argument('-d','--debug',    action='store_true',                     help='set log level to debug')
   parser.add_argument('rest', nargs='*')
@@ -197,4 +200,5 @@ if __name__ == '__main__':
   hosts = find_ipv4_ipv6_addresses_or_subnet(args)
   get_host_info(args, hosts)
   for host in hosts:
-    print(host)
+    if not args.active or (host.ping != '' and host.ping != 'timeout')  or host.ports != []:
+      print(host)
