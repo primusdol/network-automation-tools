@@ -124,23 +124,18 @@ class get_host_info(object):
     Create a list of all ping and portscan actions and start them simultaneous
     '''
     thr=[]
-    ipv6info = False
     for hst in hosts:
       if self.args.scan:
         if isinstance(hst.address, ipaddress.IPv4Address):  # ipv6 checks not implemented yet
           for port in re.findall( r'[0-9]+', self.args.port):
             thr.append(Thread(target = self.check_port, args = (hst, int(port))))
         else:
-          ipv6info = True
+          for port in re.findall( r'[0-9]+', self.args.port):
+            thr.append(Thread(target = self.check_port_v6, args = (hst, int(port))))
       if self.args.ping:
-        if isinstance(hst.address, ipaddress.IPv4Address):  # ipv6 checks not implemented yet
-          thr.append(Thread(target = self.check_ping, args = (hst,)))
-        else:
-          ipv6info = True
+        thr.append(Thread(target = self.check_ping, args = (hst,)))
       if self.args.resolve:
         hst.fqdn = ip2dns(hst.str)
-    if ipv6info:
-      logging.info('ping6 or ipv6 sockets tests are not implemented yet')
     
     for thread in thr:
       thread.start()  #  start all threads
@@ -149,13 +144,23 @@ class get_host_info(object):
 
   def check_port(self, host, port):
     '''
-    Open a socket to a host to examine if it is responding on that port
-    This routine works for ipv4 sockets, ipv6 sockets are not implemented yet 
+    Open a ipv4 socket to a host to examine if it is responding on that port
     '''
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.settimeout(2.0)    
     logging.debug('check_port {} {}'.format(host.str, port))
     if s.connect_ex((host.str, port)) == 0:  
+      host.ports.append(port)
+    s.close()
+    
+  def check_port_v6(self, host, port):
+    '''
+    Open a ipv6 socket to a host to examine if it is responding on that port
+    '''
+    s = socket.socket(socket.AF_INET6, socket.SOCK_STREAM, 0)
+    s.settimeout(2.0)    
+    logging.debug('check_port_v6 {} {}'.format(host.str, port))
+    if s.connect_ex((host.str, port, 0, 0)) == 0:  
       host.ports.append(port)
     s.close()
 
@@ -167,11 +172,18 @@ class get_host_info(object):
     There are some system independent ping implementations in pure python but
     those have usually permission issues )-;
     '''
-    param = '-c'
     host.ping = 'timeout'
-    if platform.system().lower()=='windows' :
-      param = '-n'
-    with subprocess.Popen(['ping', param, '1', host.str],  stdout=subprocess.PIPE, bufsize=0) as proc:
+    if isinstance(host.address, ipaddress.IPv4Address):
+      if platform.system().lower()=='windows' :
+        cmd = ['ping', '-n', '1', host.str]
+      else:
+        cmd = ['ping', '-c', '1', host.str]
+    else: # should be an ipaddress.IPv6Address
+      if platform.system().lower()=='windows' :
+        cmd = ['ping', '-6', '-n', '1', host.str]
+      else:
+        cmd = ['ping6', '-c', '1', host.str]
+    with subprocess.Popen(cmd, stdout=subprocess.PIPE, bufsize=0) as proc:
       for line in proc.stdout.read().decode('utf-8').splitlines():
         logging.debug('check_ping {}'.format(line))
         z=re.search('=([ 0-9.]+)ms',line)
