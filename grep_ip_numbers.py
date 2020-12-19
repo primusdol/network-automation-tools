@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 '''
-grep all ip numbers from a file and try to resolve the addresses
+grep all ipv4 numbers from a file and try to resolve the addresses
 
 20201027 1.1  primus  better error handling
 20201023 1.0  primus  included argparse
