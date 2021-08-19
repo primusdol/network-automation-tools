@@ -30,7 +30,7 @@ class switchlijst(object):
   '''
   Use a Cloudvison device export for the list of Arista switches
   
-  arista243-021,streaming / compliant / provisioned,7050SX3-48C8,4.25.1F,1.12.1,10.56.63.41,94:8e:d3:0b:e4:1d,JPE20442591
+  arista243-021,streaming / compliant / provisioned,7050SX3-48C8,4.25.1F,1.12.1,10.10.10.10,aa:bb:cc:dd:ee:ff,serial
   '''
   def __init__(self, args):
     self.args     = args
